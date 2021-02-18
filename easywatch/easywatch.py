@@ -1,16 +1,15 @@
 """
-Simple static page generator.
-Uses jinja2 to compile templates.
-Templates should live inside `./templates` and will be compiled in '.'.
+Wrapper to watch file FileSystemEvents
 """
 import functools
 import time
+from typing import List
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 
-def watch(path, handler):
+def watch(paths, handler):
     """Watch a directory for events.
     -   path should be the directory to watch
     -   handler should a function which takes an event_type and src_path
@@ -25,8 +24,12 @@ def watch(path, handler):
             return handler(event.event_type, event.src_path)
     attrs = {'on_any_event': wrapper}
     EventHandler = type("EventHandler", (FileSystemEventHandler,), attrs)
+
     observer = Observer()
-    observer.schedule(EventHandler(), path=path, recursive=True)
+
+    for path in paths:
+        observer.schedule(EventHandler(), path=path, recursive=True)
+
     observer.start()
     try:
         while True:
